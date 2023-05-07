@@ -55,34 +55,29 @@ def img_validate():
 @app.route('/teams/<int:teamId>', methods=['POST'])
 def img_processing(teamId):
     try:
-        # 1. 데이터 받기 (teamID 내에 있는 url들?)
+        # 1. 데이터 받기 (teamID 내에 있는 url들)
         urls = []
         response = request.get_json()
-        print(response)
         for obj in response.get('images', []):
             file_key = obj.get('url')
             urls.append(file_key)
 
+
         # 2. 프로세싱 적용
         frames = []
-        result_dict = {}
+        time_list = []
         for image in enumerate(urls):
             one_table_result = one_table_processing.img_to_dataframe(image[1])
             frames.append(one_table_result)
-        final_result = tables_final_result.get_final_result(frames)
+        final_result = tables_final_result.get_final_result(frames) # 결과 데이터프레임
         
-        
-        result_dict['divisorMinutes'] = 30
-        result_dict['times'] = []
+        # API에 보낼 데이터 리스트 만들기
         for key in list(final_result.keys()):
             times = final_result.index[final_result[key]==1].tolist()
             for time in times:
                 dict = {"dayOfWeek": key, "time": time}
-                result_dict['times'].append(dict)
-                
+                time_list.append(dict)
 
-            
-        print(result_dict)
 
         # 3. 이미지 만들기
         # 3-1. S3 url에 이미지 업로드
@@ -91,7 +86,7 @@ def img_processing(teamId):
         return jsonify({'resultImageUrl': response['resultImageUrl'],
                         'timeResponses': {
                             "divisorMinutes" : 30,
-                            "times" : result_dict
+                            "times" : time_list
                         }}), 200
     except Exception as e:
         return jsonify({'message': str(e)}), 400
