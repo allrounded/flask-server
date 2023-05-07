@@ -1,3 +1,5 @@
+import pandas as pd
+
 def get_default_row_list():
     index = []
     period = "AM"
@@ -30,4 +32,4 @@ class TablesResult:
               self.default_frame.loc[time, key] = 0
       return self.default_frame
 
-table_result = TablesResult()
+tables_final_result = TablesResult()

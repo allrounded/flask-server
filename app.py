@@ -1,10 +1,9 @@
 from flask import Flask, render_template, jsonify, request
 from config import AWS_ACCESS_KEY, AWS_SECRET_KEY, REGION_NAME, BUCKET_NAME
 # from flask_cors import CORS
-from tables_result import table_result
+from tables_result import tables_final_result
 from one_table_processing import one_table_processing
 import boto3
-import requests
 import json
 
 from PIL import Image
@@ -51,53 +50,49 @@ def img_validate():
         return jsonify({'message': '이미지 검증 오류', 'error': str(e)}), 400
 
 
+
 # Image Processing
-# {
-#   teamName= "올라운디드",
-#   numberOfTeam= 5,
-#   images=[
-#     {url= "url1"},
-#     {url= "url2"},
-#     {url= "url3"},
-#     {url= "url4"},
-#     {url= "url5"},
-#   ],
-#   resultImageUrl="https://mogong.s3.ap-northeast-2.amazonaws.com/image/sample_5.JPG?S3접근에 필요한 정보가 쿼리 파라미터로 들어감"
-# }
 @app.route('/teams/<int:teamId>', methods=['POST'])
 def img_processing(teamId):
     try:
         # 1. 데이터 받기 (teamID 내에 있는 url들?)
+        urls = []
         response = request.get_json()
         print(response)
-        for obj in response.get('Images', []):
-           file_key = obj.get('url')
-           print(file_key)
+        for obj in response.get('images', []):
+            file_key = obj.get('url')
+            urls.append(file_key)
 
-        # 2. 모델에 적용
-        # model = load_model()
-        # prediction = predict(model, image_np)
-        result = 'result_file' # 임의 테스트용
+        # 2. 프로세싱 적용
+        frames = []
+        result_dict = {}
+        for image in enumerate(urls):
+            one_table_result = one_table_processing.img_to_dataframe(image[1])
+            frames.append(one_table_result)
+        final_result = tables_final_result.get_final_result(frames)
+        
+        
+        result_dict['divisorMinutes'] = 30
+        result_dict['times'] = []
+        for key in list(final_result.keys()):
+            times = final_result.index[final_result[key]==1].tolist()
+            for time in times:
+                dict = {"dayOfWeek": key, "time": time}
+                result_dict['times'].append(dict)
+                
 
-        # 3. 결과 도출
+            
+        print(result_dict)
+
+        # 3. 이미지 만들기
         # 3-1. S3 url에 이미지 업로드
         # image_upload = requests.put(presigned_url, data=result)
-
-        # 3-2. return -> 결과 이미지 url과 30분 단위로 쪼갠 텍스트 뭉치 보내기
-        return jsonify({'resultImageUrl': "https://mogong.s3.ap-northeast-2.amazonaws.com/image/sample_5.JPG",
+        
+        return jsonify({'resultImageUrl': response['resultImageUrl'],
                         'timeResponses': {
                             "divisorMinutes" : 30,
-                            "times" : [{
-                                "dayOfWeek" : "MON",
-                                "time" : "09:00~09:30"
-                            }, {
-                                "dayOfWeek" : "MON",
-                                "time" : "09:30~10:00"
-                            }, {
-                                "dayOfWeek" : "SUN",
-                                "time" : "09:00~09:30"
-                            }]
-                            }}), 200
+                            "times" : result_dict
+                        }}), 200
     except Exception as e:
         return jsonify({'message': str(e)}), 400
     
