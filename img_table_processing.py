@@ -1,44 +1,51 @@
 import cv2
 import numpy as np
 import pandas as pd
+import urllib.request
 
 # 30분 단위로 바꾸기
 def table_half_hour(row_count, col_count, hori_cell, ver_cell, dst):
   result_list = []
   y = hori_cell//4 
-  for i in range(row_count*2):
+  for i in range(row_count*2): # 행의 개수 * 2번
     x = ver_cell//2
     row_list = []
-    for j in range(col_count):
+    for j in range(col_count): # 열의 개수
       value = dst[y, x]
+      if value == 255:
+        value = 1
       row_list.append(value)
       x += ver_cell
-    y += hori_cell//2
+    if col_count == 5:
+      row_list.extend([1, 1])
+    if col_count == 6:
+      row_list.append(1)
     result_list.append(row_list)
+    y += hori_cell//2
+  for i in range(30-row_count*2):
+    result_list.append([1]*7)
+    
+  # columns 월 ~ 일
+  columns = ['MON','TUE','WED','THU','FRI','SAT','SUN']
 
-  columns = ['MON','TUE','WED','THU','FRI']
-  if col_count == 6:
-    columns.append('SAT')
-  elif col_count == 7:
-    columns.extend(['SAT', 'SUN'])
-
-  # 데이터 프레임의 인덱스 값 설정
-  index = []
-  period = "AM"
-  for i in range(row_count):
-    start_time = i+9
-    if start_time >= 13:
-      start_time -= 12
-    elif start_time == 12:
-      period = "PM"
-    for j in range(2):
-      if j == 0:
-        index.append(f"{period} {start_time}:00 ~ {start_time}:30")
-      else:
-        index.append(f"{period} {start_time}:30 ~ {start_time%12+1}:00")
+  # index 오전 9시 ~ 오후 12시
+  # index = []
+  # period = "AM"
+  # for i in range(15):
+  #   start_time = i+9
+  #   if start_time >= 13:
+  #     start_time -= 12
+  #   elif start_time == 12:
+  #     period = "PM"
+  #   for j in range(2):
+  #     if j == 0:
+  #       index.append(f"{start_time}:00 ~ {start_time}:30 {period}")
+  #     else:
+  #       index.append(f"{start_time}:30 ~ {start_time%12+1}:00 {period}")
   
-  result_frame = pd.DataFrame(result_list, index = index, columns=columns)
+  result_frame = pd.DataFrame(result_list, columns=columns)
   return result_frame
+
 
 
 
@@ -47,8 +54,10 @@ class OneTableProcessing:
     self.MODE = "LIGHT"
   
   def img_to_dataframe(self, img_path):
-    image = cv2.imread(img_path)
-
+    req = urllib.request.urlopen(img_path)
+    arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
+    image = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+    
     # 다크모드
     if image[0][0][0] < 100:
       image = 255 - image
@@ -66,15 +75,11 @@ class OneTableProcessing:
 
     # contour로 외곽선 검출 및 확인
     contours, hierarchy = cv2.findContours(dst, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    # 각 contour를 감싸는 최소 크기의 사각형 좌표를 구함
-    # 사각형의 좌표 (x, y, w, h) 형태의 튜플: x와 y - 좌상단 좌표, w와 h - 각 사각형의 너비와 높이
     rects = [cv2.boundingRect(cnt) for cnt in contours]
-    # y좌표를 기준으로 오름차순으로 정렬
+    # y -> x좌표를 기준으로 오름차순
     rects = sorted(rects, key=lambda x: x[1])
-    # x좌표를 기준으로 오름차순으로 정렬
     rects = sorted(rects, key=lambda x: x[0])
  
-
     col_count = sum(1 for tpl in rects if tpl[1] == rects[0][1]) - 1 # 열의 개수
     row_count = sum(1 for tpl in rects if tpl[0] == rects[0][0]) - 1 # 행의 개수
     index_width = rects[0][2] + rects[0][0]  # 인덱스 가로
