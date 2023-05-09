@@ -34,6 +34,7 @@ def table_half_hour(row_count, col_count, hori_cell, ver_cell, dst):
 class OneTableProcessing:
   def __init__(self):
     self.columns = ['MON','TUE','WED','THU','FRI','SAT','SUN']
+    self.index = get_time_segment()
   
   def img_to_dataframe(self, img_path):
     req = urllib.request.urlopen(img_path)
@@ -77,7 +78,7 @@ class OneTableProcessing:
 
     # table_half_hour() 적용
     result_list = table_half_hour(row_count, col_count, hori_cell, ver_cell, cropped_image)
-    result_frame = pd.DataFrame(result_list, columns=self.columns, index=get_time_segment())
+    result_frame = pd.DataFrame(result_list, columns=self.columns, index=self.index)
     
     return result_frame
 
