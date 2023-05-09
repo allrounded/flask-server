@@ -2,8 +2,10 @@ import cv2
 import numpy as np
 import pandas as pd
 import urllib.request
+from img_final_result import get_time_segment
 
-# 30분 단위로 바꾸기
+
+# 30분 단위로 데이터 추출
 def table_half_hour(row_count, col_count, hori_cell, ver_cell, dst):
   result_list = []
   y = hori_cell//4 
@@ -25,33 +27,13 @@ def table_half_hour(row_count, col_count, hori_cell, ver_cell, dst):
   for i in range(30-row_count*2):
     result_list.append([1]*7)
     
-  # columns 월 ~ 일
-  columns = ['MON','TUE','WED','THU','FRI','SAT','SUN']
-
-  # index 오전 9시 ~ 오후 12시
-  # index = []
-  # period = "AM"
-  # for i in range(15):
-  #   start_time = i+9
-  #   if start_time >= 13:
-  #     start_time -= 12
-  #   elif start_time == 12:
-  #     period = "PM"
-  #   for j in range(2):
-  #     if j == 0:
-  #       index.append(f"{start_time}:00 ~ {start_time}:30 {period}")
-  #     else:
-  #       index.append(f"{start_time}:30 ~ {start_time%12+1}:00 {period}")
-  
-  result_frame = pd.DataFrame(result_list, columns=columns)
-  return result_frame
-
+  return result_list
 
 
 
 class OneTableProcessing:
   def __init__(self):
-    self.MODE = "LIGHT"
+    self.columns = ['MON','TUE','WED','THU','FRI','SAT','SUN']
   
   def img_to_dataframe(self, img_path):
     req = urllib.request.urlopen(img_path)
@@ -94,7 +76,9 @@ class OneTableProcessing:
     ver_cell = ver_pix //col_count # 한칸 가로 길이
 
     # table_half_hour() 적용
-    result_frame = table_half_hour(row_count, col_count, hori_cell, ver_cell, cropped_image)
+    result_list = table_half_hour(row_count, col_count, hori_cell, ver_cell, cropped_image)
+    result_frame = pd.DataFrame(result_list, columns=self.columns, index=get_time_segment())
+    
     return result_frame
 
 one_table_processing = OneTableProcessing()

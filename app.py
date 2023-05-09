@@ -1,22 +1,21 @@
 from flask import Flask, render_template, jsonify, request
 from config import AWS_ACCESS_KEY, AWS_SECRET_KEY, REGION_NAME, BUCKET_NAME
-# from flask_cors import CORS
-from img_tables_result import tables_final_result
 from img_table_processing import one_table_processing
+from img_final_result import result_timetable
+# from flask_cors import CORS
 import boto3
-
 
 
 app = Flask(__name__)
 # CORS(app)
 
-s3 = boto3.client('s3',
-                  endpoint_url=None,
-                  aws_access_key_id=AWS_ACCESS_KEY,
-                  aws_secret_access_key=AWS_SECRET_KEY,
-                  region_name=REGION_NAME
-                  )
-
+s3 = boto3.client(
+    "s3",
+    endpoint_url=None,
+    region_name=REGION_NAME,
+    aws_access_key_id=AWS_ACCESS_KEY,
+    aws_secret_access_key=AWS_SECRET_KEY
+)
 
 # Image Processing
 @app.route('/teams/<int:teamId>', methods=['POST'])
@@ -41,32 +40,30 @@ def img_processing(teamId):
         return jsonify({'message': str(e)}), 400
     
     
+    
 # Result Image 
 @app.route('/result_img', methods=['POST'])
 def img_result():
     try:
-#         # S3 이미지 URL 가져오기
-#         s3_image_url = request.get_json()['imageValidateUrl']
+        req_data = request.get_json()
+        resultImageUrl = req_data["resultImageUrl"]
+        resultImage = req_data['timeResponses']["times"]
+        
+        final_result_filename = result_timetable.data_to_img(resultImage)
+        key = "image/sample_5.JPG"
+        
+        with open(final_result_filename, 'rb') as f:
+            s3.put_object(
+                    Bucket=BUCKET_NAME,
+                    Body=f,
+                    Key=key,
+                    ContentType='image/jpeg'
+                )
 
-#         # S3 이미지 다운로드 및 PIL 이미지 객체로 변환
-#         filename = s3_image_url.split('/')[-2:]
-#         key = f'{filename[0]}/{filename[1]}'
-#         s3_image_object = s3.get_object(Bucket=BUCKET_NAME, Key=key)
-#         s3_image_data = s3_image_object['Body'].read()
-#         image_pil = Image.open(io.BytesIO(s3_image_data))
-#         image_np = np.array(image_pil)
+        return jsonify({'resultImageUrl': resultImageUrl}), 200
 
-#         # 시간표 이미지 검증 함수 적용
-#         # validated_result = 시간표이미지검증함수(image_np)
-#         validated_result = True  # 임의 테스트용
-
-#         # 결과 도출
-#         if validated_result == True:
-#             return jsonify({'message': "이미지 검증 성공", 'data': 'true'}), 200
-#         return jsonify({'message': "이미지 검증 실패", 'data': 'false'}), 200
-
-#     except Exception as e:
-#         return jsonify({'message': '이미지 검증 오류', 'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'message': str(e)}), 400
 
 
 
