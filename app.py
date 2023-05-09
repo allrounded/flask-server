@@ -2,12 +2,12 @@ from flask import Flask, render_template, jsonify, request
 from config import AWS_ACCESS_KEY, AWS_SECRET_KEY, REGION_NAME, BUCKET_NAME
 from img_table_processing import one_table_processing
 from img_final_result import result_timetable
-# from flask_cors import CORS
+from flask_cors import CORS
 import boto3
 
 
 app = Flask(__name__)
-# CORS(app)
+CORS(app)
 
 s3 = boto3.client(
     "s3",
