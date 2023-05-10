@@ -25,7 +25,7 @@ s3 = boto3.client("s3")
 def img_processing(teamId, memberId):
     try:
         response = request.get_json()
-        img_url = response.get('imagesUrl')
+        img_url = response.get('imageUrl')
         
         one_table_result = one_table_processing.img_to_dataframe(img_url)
         print(one_table_result)
@@ -36,14 +36,16 @@ def img_processing(teamId, memberId):
             time["time"] = one_table_result[col].values.tolist()
             time_response.append(time)
         
-        return jsonify({'timeResponses': {
-                            "divisorMinutes" : 30,
-                            "times" :  time_response
-                        }}), 200
+        return jsonify({
+            'code': 200,
+            "divisorMinutes" : 30,
+            "times" :  time_response
+                    }), 200
+        
     except BadRequest:
-        return jsonify({'message': 'Bad request'}), 400
+        return jsonify({'message': 'Bad request', "code": 400}), 400
     except Exception as e:
-        return jsonify({'message': str(e)}), 500
+        return jsonify({'message': str(e), "code": 500}), 500
     
     
     
@@ -67,13 +69,14 @@ def img_result(teamId):
                 )
 
         return jsonify({
+            'code': 200,
             'resultImageUrl': resultImageUrl
             }), 200
 
     except BadRequest:
-        return jsonify({'message': 'Bad request'}), 400
+        return jsonify({'message': 'Bad request', "code": 400}), 400
     except Exception as e:
-        return jsonify({'message': str(e)}), 500
+        return jsonify({'message': str(e), "code": 500}), 500
 
 
 
