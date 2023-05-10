@@ -38,10 +38,10 @@ def img_processing(teamId, memberId):
         
         return jsonify({
             'code': 200,
-            'timeResponses': {
-                            "divisorMinutes" : 30,
-                            "times" :  time_response
-                        }}), 200
+            "divisorMinutes" : 30,
+            "times" :  time_response
+                    }), 200
+        
     except BadRequest:
         return jsonify({'message': 'Bad request', "code": 400}), 400
     except Exception as e:
