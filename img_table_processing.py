@@ -14,18 +14,20 @@ def table_half_hour(row_count, col_count, hori_cell, ver_cell, dst):
     row_list = []
     for j in range(col_count): # 열의 개수
       value = dst[y, x]
-      if value == 255:
+      if value == 0:
         value = 1
+      if value == 255:
+        value = 0
       row_list.append(value)
       x += ver_cell
     if col_count == 5:
-      row_list.extend([1, 1])
+      row_list.extend([0, 0])
     if col_count == 6:
       row_list.append(1)
     result_list.append(row_list)
     y += hori_cell//2
   for i in range(30-row_count*2):
-    result_list.append([1]*7)
+    result_list.append([0]*7)
     
   return result_list
 

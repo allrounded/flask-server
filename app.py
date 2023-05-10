@@ -1,7 +1,8 @@
-from flask import Flask, render_template, jsonify, request
-from config import AWS_ACCESS_KEY, AWS_SECRET_KEY, REGION_NAME, BUCKET_NAME
+from flask import Flask, jsonify, request, abort
+#from config import AWS_ACCESS_KEY, AWS_SECRET_KEY, REGION_NAME, BUCKET_NAME
 from img_table_processing import one_table_processing
 from img_final_result import result_timetable
+from werkzeug.exceptions import BadRequest
 from flask_cors import CORS
 import boto3
 
@@ -9,20 +10,23 @@ import boto3
 app = Flask(__name__)
 CORS(app)
 
-s3 = boto3.client(
-    "s3",
-    endpoint_url=None,
-    region_name=REGION_NAME,
-    aws_access_key_id=AWS_ACCESS_KEY,
-    aws_secret_access_key=AWS_SECRET_KEY
-)
+# s3 = boto3.client(
+#     "s3",
+#     endpoint_url=None,
+#     region_name=REGION_NAME,
+#     aws_access_key_id=AWS_ACCESS_KEY,
+#     aws_secret_access_key=AWS_SECRET_KEY
+# )
+s3 = boto3.client("s3")
+
 
 # Image Processing
-@app.route('/teams/<int:teamId>', methods=['POST'])
-def img_processing(teamId):
+@app.route('/teams/<int:teamId>/members/<int:memberId>', methods=['POST'])
+def img_processing(teamId, memberId):
     try:
         response = request.get_json()
         img_url = response.get('imagesUrl')
+        
         one_table_result = one_table_processing.img_to_dataframe(img_url)
         print(one_table_result)
         
@@ -36,14 +40,16 @@ def img_processing(teamId):
                             "divisorMinutes" : 30,
                             "times" :  time_response
                         }}), 200
+    except BadRequest:
+        return jsonify({'message': 'Bad request'}), 400
     except Exception as e:
-        return jsonify({'message': str(e)}), 400
+        return jsonify({'message': str(e)}), 500
     
     
     
 # Result Image 
-@app.route('/result_img', methods=['POST'])
-def img_result():
+@app.route('/teams/<int:teamId>/results', methods=['POST'])
+def img_result(teamId):
     try:
         req_data = request.get_json()
         resultImageUrl = req_data["resultImageUrl"]
@@ -54,16 +60,22 @@ def img_result():
         
         with open(final_result_filename, 'rb') as f:
             s3.put_object(
-                    Bucket=BUCKET_NAME,
+                    Bucket="mogong",
                     Body=f,
                     Key=key,
                     ContentType='image/jpeg'
                 )
 
-        return jsonify({'resultImageUrl': resultImageUrl}), 200
+        return jsonify({
+            'resultImageUrl': resultImageUrl
+            }), 200
 
+    except BadRequest:
+        return jsonify({'message': 'Bad request'}), 400
     except Exception as e:
-        return jsonify({'message': str(e)}), 400
+        return jsonify({'message': str(e)}), 500
+
+
 
 
 
