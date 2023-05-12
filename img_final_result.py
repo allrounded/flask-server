@@ -61,9 +61,9 @@ class ResultTimetable:
                 cell_value = cell.get_text().get_text()
                 cell.set_edgecolor('black')
                 if cell_value == "1":
-                    cell.set_facecolor('orange')
-                elif cell_value == "0":
                     cell.set_facecolor('white')
+                elif cell_value == "0":
+                    cell.set_facecolor('orange')
 
         #col headers
         for i in range(0, len(self.columns)):
