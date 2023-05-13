@@ -26,7 +26,6 @@ def img_processing(teamId, memberId):
     try:
         response = request.get_json()
         img_url = response.get('imageUrl')
-        
         one_table_result = one_table_processing.img_to_dataframe(img_url)
         print(one_table_result)
         
@@ -41,7 +40,9 @@ def img_processing(teamId, memberId):
             "divisorMinutes" : 30,
             "times" :  time_response
                     }), 200
-        
+    
+    except ZeroDivisionError:
+        return jsonify({'message': '에브리타임 시간표 이미지가 아닙니다', "code": 400}), 400
     except BadRequest:
         return jsonify({'message': 'Bad request', "code": 400}), 400
     except Exception as e:
@@ -54,11 +55,11 @@ def img_processing(teamId, memberId):
 def img_result(teamId):
     try:
         req_data = request.get_json()
-        resultImageUrl = req_data["resultImageUrl"]
+        teamName = req_data["teamName"]
         resultImage = req_data['timeResponses']["times"]
-        
+
         final_result_filename = result_timetable.data_to_img(resultImage)
-        key = "image/sample_5.JPG"
+        key = f"image/teams/{teamId}/{teamName}.jpeg"
         
         with open(final_result_filename, 'rb') as f:
             s3.put_object(
@@ -68,11 +69,9 @@ def img_result(teamId):
                     ContentType='image/jpeg'
                 )
 
-        return jsonify({
-            'code': 200,
-            'resultImageUrl': resultImageUrl
-            }), 200
+        return jsonify({'code': 200}), 200
 
+    
     except BadRequest:
         return jsonify({'message': 'Bad request', "code": 400}), 400
     except Exception as e:
