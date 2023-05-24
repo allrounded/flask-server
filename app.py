@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, abort
-#from config import AWS_ACCESS_KEY, AWS_SECRET_KEY, REGION_NAME, BUCKET_NAME
+# from config import AWS_ACCESS_KEY, AWS_SECRET_KEY, REGION_NAME, BUCKET_NAME
 from img_table_processing import one_table_processing
 from img_final_result import result_timetable
 from werkzeug.exceptions import BadRequest
@@ -27,7 +27,7 @@ def img_processing(teamId, memberId):
         response = request.get_json()
         img_url = response.get('imageUrl')
         one_table_result = one_table_processing.img_to_dataframe(img_url)
-        print(one_table_result)
+        # print(one_table_result)
         
         time_response = []
         for col in list(one_table_result.columns):

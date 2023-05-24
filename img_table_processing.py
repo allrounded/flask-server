@@ -8,7 +8,7 @@ from img_final_result import get_time_segment
 # 30분 단위로 데이터 추출
 def table_half_hour(row_count, col_count, hori_cell, ver_cell, dst):
   result_list = []
-  y = hori_cell//4 
+  y = hori_cell//24
   for i in range(row_count*2): # 행의 개수 * 2번
     x = ver_cell//2
     row_list = []
@@ -57,6 +57,10 @@ class OneTableProcessing:
       thresh_value, dst = cv2.threshold(blur, 251, 255, cv2.THRESH_BINARY)
       kernel = np.ones((3,3), np.uint8)
       dst = cv2.morphologyEx(dst, cv2.MORPH_OPEN, kernel, iterations=3)
+    print(dst)
+    # cv2.imshow('image',dst)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     # contour로 외곽선 검출 및 확인
     contours, hierarchy = cv2.findContours(dst, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
