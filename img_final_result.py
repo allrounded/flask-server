@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.image as image
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 
 def get_time_segment():
@@ -38,49 +40,244 @@ class ResultTimetable:
         arr = np.array(arr).transpose()
         df = pd.DataFrame(arr)
 
-        fig, ax = plt.subplots(figsize=(7,10))
-        plt.subplots_adjust(left=0.25)
-        plt.rcParams['text.color']='black'
+        df.insert(0, "null", [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], True)
+        fig, ax = plt.subplots(figsize=(15,18))
+        plt.subplots_adjust()
+        plt.rcParams['text.color']='none'
+        kl = len(df.keys())
+        vl = len(df.values)
 
         timetable = plt.table(cellText=df.values,
-                            cellLoc='center',
-                            colLabels=self.columns,
-                            rowLabels=self.timeSegment[0:len(df.values)],
-                            rowLoc='center',
-                            loc='center',
-                            bbox=(0,0,1,1))
-        ax.axis(xmax=1.4, ymax=31)
+                      cellLoc='center',
+                      colLabels=df.keys(),
+                      loc='center',
+                      zorder=2,
+                      bbox=(0,0,1,1))
+        
+        ax.axis(xmax=kl, ymax=vl+4)
         ax.axis('off')
 
         #data cells
-        for i in range(1,len(df.values)+1):
-            for j in range(0,len(self.columns)):
+        for i in range(1,vl+1):
+            for j in range(0,kl):
                 cell = timetable[i,j]
                 cell.set_height(0.1)
                 cell.get_text().set_visible(False)
                 cell_value = cell.get_text().get_text()
-                cell.set_edgecolor('black')
-                if cell_value == "0":
-                    cell.set_facecolor('orange')
-                elif cell_value == "1":
+                if cell_value == "1":
+                    cell.set_facecolor('#FF9836')
+                    cell.set_edgecolor('#FF9836')
+                elif cell_value == "0":
                     cell.set_facecolor('white')
+                    cell.set_edgecolor('white')
 
         #col headers
-        for i in range(0, len(self.columns)):
+        for i in range(0, kl):
                 cell = timetable[0,i]
-                cell.set_height(0.1)
-                cell.set_edgecolor('black')
-                cell.visible_edges = 'vertical'
-                
-        #row headers
-        for j in range(1, len(df.values)+1):
-            cell = timetable[j,-1]
-            cell.set_height(0.1)
-            cell.set_edgecolor('black')
-            cell.visible_edges = 'horizontal'
+                cell.set_height(0.4)
+                cell.visible_edges = 'open'
 
+        #column lines
+        for x in range(0, kl+1):
+            ax.plot([x,x], [0, vl+2], lw=1.15, color='#C5C5C5', zorder=3, marker='')
 
-        filename = 'test_table.png'
+        #row header lines
+        for x in range(0,vl+2):
+            if x%2 == 0:
+                ax.plot([0,kl+1], [x,x], lw=1, color='#C5C5C5', zorder=3, marker='')
+
+        #column header row lines
+        ax.plot([0,9], [32,32], lw=1, color='#C5C5C5', zorder=3, marker='')
+
+        #bottom row
+        ax.plot([0,9],[0,0], lw=1.5, color='#C5C5C5', zorder=3, marker='')
+            
+        #white halfline
+        for i in range(0,vl):
+            for j in range(1,kl):
+                cell = timetable[i,j]
+                cell_value = cell.get_text().get_text()
+                cell1 = timetable[i+1,j]
+                cell_value1 = cell1.get_text().get_text()
+                if cell_value != cell_value1:
+                    ax.plot([j,j+1], [30-i,30-i], lw=1, color='#C5C5C5', zorder=3, marker='')
+                    
+        #blank column
+        for x in range(0, vl+1):
+            cell = timetable[x,0]
+            cell.visible_edges = 'open'
+
+        #end borders
+            
+        #monday image
+        file = 'static/images/resultimage/monday.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.3)
+        ab = AnnotationBbox(imagebox, (1.5,31), frameon = False)
+        ax.add_artist(ab)
+
+        #tuesday image
+        file = 'static/images/resultimage/tuesday.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.3)
+        ab = AnnotationBbox(imagebox, (2.5,31), frameon = False)
+        ax.add_artist(ab)
+
+        #wednesday image
+        file = 'static/images/resultimage/wednesday.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.3)
+        ab = AnnotationBbox(imagebox, (3.5,31), frameon = False)
+        ax.add_artist(ab)
+
+        #thursday image
+        file = 'static/images/resultimage/thursday.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.3)
+        ab = AnnotationBbox(imagebox, (4.5,31), frameon = False)
+        ax.add_artist(ab)
+
+        #friday image
+        file = 'static/images/resultimage/friday.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.3)
+        ab = AnnotationBbox(imagebox, (5.5,31), frameon = False)
+        ax.add_artist(ab)
+
+        #saturday image
+        file = 'static/images/resultimage/saturday.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.3)
+        ab = AnnotationBbox(imagebox, (6.5,31.03), frameon = False)
+        ax.add_artist(ab)
+
+        #sunday image
+        file = 'static/images/resultimage/sunday.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.3)
+        ab = AnnotationBbox(imagebox, (7.5,31), frameon = False)
+        ax.add_artist(ab)
+
+        #9am image
+        file = 'static/images/resultimage/nine.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,29), frameon = False)
+        ax.add_artist(ab)
+
+        #10am image
+        file = 'static/images/resultimage/ten.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,27), frameon = False)
+        ax.add_artist(ab)
+
+        #11am image
+        file = 'static/images/resultimage/eleven.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,25), frameon = False)
+        ax.add_artist(ab)
+
+        #12pm image
+        file = 'static/images/resultimage/twelve.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,23), frameon = False)
+        ax.add_artist(ab)
+
+        #1pm image
+        file = 'static/images/resultimage/one.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,21), frameon = False)
+        ax.add_artist(ab)
+
+        #2pm image
+        file = 'static/images/resultimage/two.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,19), frameon = False)
+        ax.add_artist(ab)
+
+        #3pm image
+        file = 'static/images/resultimage/three.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,17), frameon = False)
+        ax.add_artist(ab)
+
+        #4pm image
+        file = 'static/images/resultimage/four.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,15), frameon = False)
+        ax.add_artist(ab)
+
+        #5pm image
+        file = 'static/images/resultimage/five.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,13), frameon = False)
+        ax.add_artist(ab)
+
+        #6pm image
+        file = 'static/images/resultimage/six.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,11), frameon = False)
+        ax.add_artist(ab)
+
+        #7pm image
+        file = 'static/images/resultimage/seven.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,9), frameon = False)
+        ax.add_artist(ab)
+
+        #8pm image
+        file = 'static/images/resultimage/eight.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,7), frameon = False)
+        ax.add_artist(ab)
+
+        #9pm image
+        file = 'static/images/resultimage/nine.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,5), frameon = False)
+        ax.add_artist(ab)
+
+        #10pm image
+        file = 'static/images/resultimage/ten.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,3), frameon = False)
+        ax.add_artist(ab)
+
+        #11pm image
+        file = 'static/images/resultimage/eleven.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.2)
+        ab = AnnotationBbox(imagebox, (0.5,1), frameon = False)
+        ax.add_artist(ab)
+
+        #logo image
+        file = 'static/images/resultimage/logo.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.6)
+        ab = AnnotationBbox(imagebox, (1.25,33.5), frameon = False)
+        ax.add_artist(ab)
+
+        #caption image
+        file = 'static/images/resultimage/caption.png'
+        logo = image.imread(file)
+        imagebox = OffsetImage(logo, zoom = 0.3)
+        ab = AnnotationBbox(imagebox, (4.1,33.3), frameon = False)
+        ax.add_artist(ab)
+
+        filename = 'static/result_image.jpg'
         plt.savefig(filename, bbox_inches='tight')
         
         return filename
