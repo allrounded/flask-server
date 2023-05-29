@@ -14,16 +14,12 @@ def table_half_hour(row_count, col_count, hori_cell, ver_cell, dst):
     row_list = []
     for j in range(col_count): # 열의 개수
       value = dst[y, x]
-      if value == 0:
-        value = 1
-      if value == 255:
-        value = 0
+      if value == 0: value = 1
+      if value == 255: value = 0
       row_list.append(value)
       x += ver_cell
-    if col_count == 5:
-      row_list.extend([0, 0])
-    if col_count == 6:
-      row_list.append(1)
+    if col_count == 5: row_list.extend([0, 0])
+    if col_count == 6: row_list.append(1)
     result_list.append(row_list)
     y += hori_cell//2
   for i in range(30-row_count*2):
@@ -42,6 +38,7 @@ class OneTableProcessing:
     req = urllib.request.urlopen(img_path)
     arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
     image = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+    # image = cv2.imread(img_path) # test
     
     # 다크모드
     if image[0][0][0] < 100:
@@ -57,10 +54,6 @@ class OneTableProcessing:
       thresh_value, dst = cv2.threshold(blur, 251, 255, cv2.THRESH_BINARY)
       kernel = np.ones((3,3), np.uint8)
       dst = cv2.morphologyEx(dst, cv2.MORPH_OPEN, kernel, iterations=3)
-    print(dst)
-    # cv2.imshow('image',dst)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
 
     # contour로 외곽선 검출 및 확인
     contours, hierarchy = cv2.findContours(dst, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)

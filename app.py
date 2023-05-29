@@ -56,7 +56,7 @@ def img_result(teamId):
     try:
         req_data = request.get_json()
         teamName = req_data["teamName"]
-        resultImage = req_data['timeResponses']["times"]
+        resultImage = req_data['timeRequests']["times"]
 
         final_result_filename = result_timetable.data_to_img(resultImage)
         key = f"image/teams/{teamId}/{teamName}.jpeg"
