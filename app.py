@@ -27,7 +27,6 @@ def img_processing(teamId, memberId):
         response = request.get_json()
         img_url = response.get('imageUrl')
         one_table_result = one_table_processing.img_to_dataframe(img_url)
-        # print(one_table_result)
         
         time_response = []
         for col in list(one_table_result.columns):

@@ -9,17 +9,24 @@ from img_final_result import get_time_segment
 def table_half_hour(row_count, col_count, hori_cell, ver_cell, dst):
   result_list = []
   y = hori_cell//24
+  confirmed_lst = [2*y, 4*y, 6*y, 8*y, 10*y]
   for i in range(row_count*2): # 행의 개수 * 2번
     x = ver_cell//2
     row_list = []
     for j in range(col_count): # 열의 개수
       value = dst[y, x]
-      if value == 0: value = 1
-      if value == 255: value = 0
-      row_list.append(value)
+      if value == 0: result_value = 1
+      if value == 255: 
+        for i in confirmed_lst:
+          if dst[y+i, x]==0:
+             result_value = 1
+             break
+          else:
+            result_value = 0
+      row_list.append(result_value)
       x += ver_cell
     if col_count == 5: row_list.extend([0, 0])
-    if col_count == 6: row_list.append(1)
+    if col_count == 6: row_list.append(0)
     result_list.append(row_list)
     y += hori_cell//2
   for i in range(30-row_count*2):
@@ -38,7 +45,7 @@ class OneTableProcessing:
     req = urllib.request.urlopen(img_path)
     arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
     image = cv2.imdecode(arr, cv2.IMREAD_COLOR)
-    # image = cv2.imread(img_path) # test
+    # image = cv2.imread(img_path) # 테스트용
     
     # 다크모드
     if image[0][0][0] < 100:
